@@ -26,10 +26,11 @@ pub fn run_algorithm<A: Algorithm>(
     ) {
     let mut writer = Writer::from_writer(File::create(format!("{}.csv", fp)).unwrap());
 
-    writer.write_record(["Vertices", "Edges", "Average Time (ms)", "Median Time (ms)", "std (ms)"]).unwrap();
+    writer.write_record(["Vertices", "Edges", "Iteration", "Time (ms)"]).unwrap();
 
 
     for &vertice in &vertices {
+        println!("Benchmarking size {}", vertice);
         for &edge in &edges {
             let mut all_times: Vec<f64> = Vec::new();
             let mut iterations = 0;
@@ -40,6 +41,12 @@ pub fn run_algorithm<A: Algorithm>(
 
                 let time = measure_time!(algorithm.run(&graph));
                 all_times.push(time);
+                writer.write_record(&[
+                    vertice.to_string(),
+                    edge.to_string(),
+                    iterations.to_string(),
+                    format!("{:.3}", time * 1000.0),
+                ]).unwrap();
 
                 iterations += 1;
                 if iterations > max_iterations {
@@ -47,22 +54,22 @@ pub fn run_algorithm<A: Algorithm>(
                 } 
             }
 
-            if iterations > 0 {
-                let avg_time = all_times.clone().mean() * 1000.0;
-                let std_dev = all_times.clone().std_dev() * 1000.0;
-                let median_time = median(&mut all_times) * 1000.0;
-                let avg_time_formatted = format!("{:.1}", avg_time);
-                let std_dev_formatted = format!("{:.1}", std_dev);
-                let median_time_formatted = format!("{:.1}", median_time);
-                println!("avg: {}, median: {}, std_dev: {}",  avg_time, median_time, std_dev);
-                writer.write_record(&[
-                    vertice.to_string(),
-                    edge.to_string(),
-                    avg_time_formatted,
-                    median_time_formatted,
-                    std_dev_formatted,
-                ]).unwrap();
-            }
+            //if iterations > 0 {
+            //    let avg_time = all_times.clone().mean() * 1000.0;
+            //    let std_dev = all_times.clone().std_dev() * 1000.0;
+            //    let median_time = median(&mut all_times) * 1000.0;
+            //    let avg_time_formatted = format!("{:.1}", avg_time);
+            //    let std_dev_formatted = format!("{:.1}", std_dev);
+            //    let median_time_formatted = format!("{:.1}", median_time);
+            //    println!("avg: {}, median: {}, std_dev: {}",  avg_time, median_time, std_dev);
+            //    writer.write_record(&[
+            //        vertice.to_string(),
+            //        edge.to_string(),
+            //        avg_time_formatted,
+            //        median_time_formatted,
+            //        std_dev_formatted,
+            //    ]).unwrap();
+            //}
         }
     }
 }
