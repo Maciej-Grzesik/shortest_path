@@ -1,22 +1,55 @@
-use std::{collections::HashMap, hash::Hash};
+use std::collections::HashMap;
 
-pub struct Graph<VId, E = (), V = ()> {
-    vertices: HashMap<VId, V>,
-    adjacency: HashMap<VId, Vec<(VId, E)>>,
+pub struct DiGraphMap<N, W> {
+    adjacency_list: HashMap<N, HashMap<N, W>>,
 }
 
-impl<VId, E, V> Graph<VId, E, V> where VId: Eq + Hash, V: Hash, {
-    pub fn new() -> Graph<VId, E, V> {
-        Graph { vertices: HashMap::new(), adjacency: HashMap::new() }
-    }
-    
-    pub fn push_vertex(self: &mut Graph<VId, E, V>, vid: VId, vertex: V) {
-        self.vertices.insert(vid, vertex);
+impl<N: Eq + PartialEq + std::hash::Hash + Copy, W: Copy + Default + PartialEq> DiGraphMap<N, W> {
+    pub fn new() -> Self {
+        Self {
+            adjacency_list: HashMap::new(),
+        }
     }
 
-    pub fn push_edge(self: &mut Graph<VId, E, V>, from: VId, to: VId, edge: E) {
-        let adjacent_to_from = self.adjacency.entry(from).or_default();
-        adjacent_to_from.push((to, edge));
+    pub fn add_edge(&mut self, from: N, to: N, weight: W) {
+        self.adjacency_list.entry(from).or_default().insert(to, weight);
     }
 
+    pub fn node_count(&self) -> usize {
+        self.adjacency_list.len()
+    }
+
+    pub fn neighbors(&self, node: N) -> Vec<N> {
+        self.adjacency_list.get(&node).map_or(vec![], |edges| edges.keys().copied().collect())
+    }
+
+    pub fn edge_weight(&self, from: N, to: N) -> Option<&W> {
+        self.adjacency_list.get(&from)?.get(&to)
+    }
+
+    pub fn edge_weight_mut(&mut self, from: N, to: N) -> Option<&mut W> {
+        self.adjacency_list.get_mut(&from)?.get_mut(&to)
+    }
+
+    pub fn add_node(&mut self, node: N) {
+        self.adjacency_list.entry(node).or_default();
+    }
+
+    pub fn nodes(&self) -> impl Iterator<Item = N> + '_ {
+        self.adjacency_list.keys().copied()
+    }
+
+    pub fn contains_edge(&self, from: N, to: N) -> bool {
+        self.adjacency_list.get(&from).is_some_and(|edges| edges.contains_key(&to))
+    }
+
+    pub fn all_edges(&self) -> Vec<(N, N, W)> {
+        let mut edges = Vec::new();
+            for (&from, neighbors) in &self.adjacency_list {
+                for (&to, &weight) in neighbors {
+                    edges.push((from, to, weight));
+                }
+            }
+        edges
+    }
 }

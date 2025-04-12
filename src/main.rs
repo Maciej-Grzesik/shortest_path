@@ -1,21 +1,28 @@
+use core::{logspace::logspace, statistics::{run_algorithm, BellmanFord, FloydWarshall}};
+use std::vec;
+
+
 pub mod core;
 pub mod algorithm;
 
 
-use crate::core::graph::Graph;
-use crate::algorithm::dijkstra::dijkstra;
 
 fn main() {
-    let mut graph = Graph::<i32, i32, ()>::new();
+    let max_duration_seconds = 300.0;
+    let max_iterations = 1000;
+    let vertices = logspace(1000, 1_000_000, 10);
+    let edges = vec![1.0, 1.5, 2.0, 3.0];
 
-    graph.push_vertex(1, ());
-    graph.push_vertex(2, ());
-    graph.push_vertex(3, ());
-    graph.push_vertex(4, ());
-
-    graph.push_edge(1, 2, 5);
-    graph.push_edge(1, 3, 10);
-    graph.push_edge(2, 3, 1);
-    graph.push_edge(2, 4, 1000);
-    graph.push_edge(3, 4, 15);
+    let bellman_ford = BellmanFord {};
+    let floyd_warshall = FloydWarshall {};
+    
+    run_algorithm(
+        bellman_ford, 
+        edges, 
+        vertices, 
+        max_duration_seconds, 
+        max_iterations, 
+        "bellman_ford"
+    );
+    
 }
